@@ -2,6 +2,7 @@ import time
 import os
 import random
 import configparser
+import logging
 import platform
 import tarfile
 import tempfile
@@ -11,6 +12,10 @@ from urllib.parse import urlparse
 import yaml
 import click
 import requests
+import traceback
+
+logging.basicConfig()
+logging.getLogger().setLevel("INFO")
 
 from artefacts import init_job, generate_scenarios, __version__, AuthenticationError
 
@@ -169,6 +174,7 @@ def run(config, jobname, dryrun):
     try:
         warpjob = init_job(project_id, api_conf, jobname, jobconf, dryrun, first)
     except AuthenticationError:
+        logging.error(traceback.format_exc())
         raise click.ClickException(
             "Unable to authenticate, check your Project Name and API Key"
         )
@@ -181,6 +187,7 @@ def run(config, jobname, dryrun):
         try:
             run = warpjob.new_run(scenario)
         except AuthenticationError:
+            logging.error(traceback.format_exc())
             raise click.ClickException(
                 "Unable to authenticate, check your Project Name and API Key"
             )
