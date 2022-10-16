@@ -49,6 +49,7 @@ class APIConf:
                 "https://app.artefacts.com/api",
             ),
         )
+        click.echo(f"USING API URL line52 warpcli.py: {self.api_url}")
         self.api_key = os.environ.get("WARP_KEY", profile.get("ApiKey", None))
        
         if self.api_key is None:
