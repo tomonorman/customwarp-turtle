@@ -1,6 +1,6 @@
 version: 0.1.0
 
-project: example-output-tomo
+project: customwarp-turtle
 on: 
   push:
     jobs:
