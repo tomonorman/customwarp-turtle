@@ -1,0 +1,33 @@
+version: 0.1.0
+
+project: example-output-types
+on: 
+  push:
+    jobs:
+     - job1
+jobs:
+  job1: # Overall job name
+    type: test
+    package:
+      docker:
+        build: # Sample with a custom Dockerfile. Another option is to specify an image.
+          dockerfile: ./Dockerfile
+    runtime:
+      framework: other
+    timeout: 2 #minutes
+    scenarios:
+      defaults: # Global to all scenarios, and overriden in specific scenarios.
+        subscriptions:
+          pose: turtle1/pose
+      settings:
+        - name: save-video
+          output_path: /ws/output
+          run: ros2 launch cam_test sim1.launch.py output_video:=/ws/output/rec.mjpg
+          # ros2_testfile: . /ws/install/local_setup.sh && colcon build && colcon test
+          # ros2_testfile: example_tests/launch/test.launch.py
+          # ros2_testfile: ros2 launch irobot_create_ignition_bringup create3_ignition.launch.py
+        # - name: scenario-0
+        #   ros2_testfile: launch_turtle.py
+        #   params:
+        #     dummy/dummy: [0, 1]
+        #   params_output: "config.yaml"

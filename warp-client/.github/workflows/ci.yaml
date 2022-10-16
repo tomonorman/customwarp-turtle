@@ -1,0 +1,75 @@
+name: check and run tests
+
+# Trigger Rule: Trigger when push to main or PR to main.
+# Performs checks and if on main bump version, publish release and docs
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+        - 'README.md'
+        - 'docs/**'
+        - 'mkdocs.yml'
+        - '.github/**'
+        - 'Makefile'
+
+jobs:
+  # 1st job: "check"
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.9", "3.10"]
+
+    steps:
+      # Checkout repository under $GITHUB_WORKSPACE, so our jobs can access it.
+      - uses: actions/checkout@v3
+
+      # Steps of check
+      - name: Set Up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install lib and dependencies
+        run: make install
+
+      - name: Run Linters
+        run: make lint
+
+      - name: Run Test
+        run: make test
+
+  publish-release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    needs: check
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set Up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Build Requirements
+        run: make install
+      - name: Bump version
+        env:
+          GIT_NAME: ${{ github.event.head_commit.author.name }}
+          GIT_EMAIL: ${{ github.event.head_commit.author.email }}
+        run: |
+          git config --global user.email $GIT_EMAIL
+          git config --global user.name "$GIT_NAME"
+          make bump-patch
+          git push
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+      - name: Build and publish archive
+        run: make publish-archive
+      - name: Build and publish docs
+        run: make publish-docs

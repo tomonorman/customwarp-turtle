@@ -1,0 +1,35 @@
+name: deploy-dev
+
+# Trigger Rule: Trigger when push to main or PR to main.
+on: workflow_dispatch
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set Up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Build Requirements
+        run: make install
+      - name: Add commit to version
+        run: |
+          # a commit is created to prepare the package, but not kept
+          git config --global user.name "Bump bot"
+          git config --global user.email "bot@artefacts.com"
+          make bump-dev
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+      - name: Build and publish dev archive
+        run: make publish-dev-archive
+      - name: Build and publish dev docs
+        run: make publish-dev-docs

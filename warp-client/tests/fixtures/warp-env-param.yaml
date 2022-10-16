@@ -1,0 +1,28 @@
+version: 0.1.0
+project: _pytest-project_
+jobs:
+  simple_job:
+    runtime:
+      simulator: sapien
+      framework: other
+    scenarios:
+      settings:
+        - name: basic-tests
+          run: echo
+        - name: other-tests
+          ros2_testfile: launchtests.py
+          run: echo
+  tests:
+    runtime:
+      simulator: turtlesim
+      framework: ros2:0
+    scenarios:
+      defaults:
+        run: echo
+        params:
+          gravity: [9.807, 1.62]
+      settings:
+        - name: basic-tests
+        - name: param-grid
+          params:
+            gravity: [9.807, 1.62, 0]

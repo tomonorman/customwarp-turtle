@@ -1,0 +1,5 @@
+site_name: artefacts-client
+site_url: https://docs.artefacts.com/
+
+markdown_extensions:
+    - mkdocs-click
