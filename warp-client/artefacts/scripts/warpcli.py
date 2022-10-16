@@ -50,6 +50,7 @@ class APIConf:
             ),
         )
         self.api_key = os.environ.get("WARP_KEY", profile.get("ApiKey", None))
+       
         if self.api_key is None:
             batch_id = os.environ.get("AWS_BATCH_JOB_ID", None)
             job_id = os.environ.get("ARTEFACTS_JOB_ID", None)
@@ -69,6 +70,7 @@ class APIConf:
         ] = f"ArtefactsClient/{__version__} ({platform.platform()}/{platform.python_version()})"
         click.echo(f"Connecting to {self.api_url} using {auth_type}")
         click.echo(f"HEADERS {self.headers}")
+        click.echo(f"class APICONF line 73: job id {job_id}, batch id {batch_id}")
 
 
 def read_config(filename):
@@ -173,6 +175,7 @@ def run(config, jobname, dryrun):
     print(f"project_id'{project_id}', api_conf'{api_conf}', jobname'{jobname}', jobconf'{jobconf}', dryrun'{dryrun}', first'{first}',")
     try:
         warpjob = init_job(project_id, api_conf, jobname, jobconf, dryrun, first)
+        click.echo(f"Warpjob created from init_job: {warpjob}")
     except AuthenticationError:
         logging.error(traceback.format_exc())
         raise click.ClickException(
@@ -362,9 +365,11 @@ def run_remote(config, description, jobname):
 def warpcli():
     """A command line tool to interface with WARP"""
     compute_env = os.getenv("AWS_BATCH_CE_NAME", "")
+    click.echo(f"Compute Environment: {compute_env}")
     if compute_env != "":
         click.echo(f"running version {__version__}")
         if "development" in compute_env and os.getenv("WARP_API_URL", None) is None:
+            click.echo(f"OS environemnt: {os.environ}")
             os.environ["WARP_API_URL"] = "https://ui.artefacts.com/api"
 
 

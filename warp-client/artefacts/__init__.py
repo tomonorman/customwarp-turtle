@@ -3,12 +3,14 @@ import glob
 from datetime import datetime, timezone
 import logging
 import os
+import click
 
 import requests
 
 from .parameters import iter_grid
 
 logging.basicConfig(level=logging.INFO)
+
 
 __version__ = "0.2.16"
 
@@ -33,6 +35,8 @@ class WarpJob:
         self.success = False
         self.n_runs = run_offset
         self.dryrun = dryrun
+
+        click.echo(f"Jobid at WarpJob class initialization: {self.job_id}")
 
         if dryrun:
             self.job_id = "dryrun"
@@ -59,6 +63,7 @@ class WarpJob:
                 logging.warning(response.text)
                 raise AuthenticationError(str(response.status_code))
             self.job_id = response.json()["job_id"]
+            click.error(f"JobId returned from response init.py {self.job_id}")
         self.output_path = self.params.get("output_path", f"/tmp/{self.job_id}")
         os.makedirs(self.output_path, exist_ok=True)
         return
@@ -114,7 +119,7 @@ class WarpRun:
             "tests": [],
             "params": json.dumps(self.params),
         }
-
+        click.echo(f"WarpRun job data: {data}")
         if self.job.dryrun:
             return
         query_url = (
